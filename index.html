@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ДЕМБЕЛЬ ТАЙМЕР - ВАСИЛИЙ</title>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; min-height: 100dvh; /* Поддержка мобильных браузеров */
+            background: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
+            font-family: 'Courier New', monospace; touch-action: manipulation;
+            color: #fff;
+        }
+
+        #fireworksCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
+        .monitor {
+            position: relative; z-index: 2;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px; border-radius: 15px;
+            border: 2px solid #222;
+            width: 92vw; max-width: 400px;
+            max-height: 95dvh; overflow-y: auto; /* Скролл если экран совсем маленький */
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
+        }
+
+        /* Оптимизация фото под высоту экрана */
+        .photo-container {
+            display: inline-block; border: 3px solid #00ff00; border-radius: 10px;
+            margin-bottom: 10px; box-shadow: 0 0 15px #00ff00;
+            animation: neon-pulse 2s infinite ease-in-out;
+            max-width: 100%;
+        }
+        .photo-container img {
+            width: 100%; height: auto; 
+            max-height: 25dvh; /* Ограничение высоты для мобильных */
+            display: block; object-fit: cover;
+        }
+
+        @keyframes neon-pulse { 0%, 100% { box-shadow: 0 0 10px #00ff00; } 50% { box-shadow: 0 0 20px #00ff00; } }
+
+        #today-date { color: #00ff00; font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+
+        .timer-display { font-weight: bold; line-height: 1.2; }
+        #ny-display { font-size: 1.8rem; color: #fff; }
+        .dembel-timer { color: #ffff00; font-size: 1.8rem; }
+
+        .dembel-box { 
+            border: 2px dashed #ffff00; margin: 10px 0; padding: 10px; 
+            background: rgba(255, 255, 0, 0.05); border-radius: 8px;
+        }
+
+        #music-btn {
+            display: none; background: #ff0000; color: white; border: 2px solid #fff; 
+            padding: 15px; width: 100%; border-radius: 10px; font-weight: 900; 
+            font-size: 1.1rem; text-transform: uppercase; cursor: pointer;
+            animation: fast-flash 0.2s infinite; margin-top: 10px;
+            user-select: none;
+        }
+        @keyframes fast-flash { 0% { background: #f00; } 50% { background: #000; } 100% { background: #f00; } }
+
+        .neon-phrase {
+            font-size: 1.1rem; font-weight: bold; text-transform: uppercase;
+            background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #f0f, #f00);
+            background-size: 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: rainbow 4s linear infinite; margin: 10px 0;
+        }
+        @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 300%; } }
+
+        #wish-box { 
+            border: 2px double #ff3333; padding: 12px; border-radius: 8px;
+            background: rgba(255, 0, 0, 0.05); transition: 0.5s; 
+        }
+        .wish-content { font-size: 1rem; color: #ffaaaa; font-weight: bold; word-wrap: break-word; }
+        .elf-status { font-size: 0.75rem; color: #ff6666; margin-top: 8px; font-style: italic; }
+
+        .falling-item { position: fixed; top: -50px; z-index: 1; pointer-events: none; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(105dvh) rotate(360deg); } }
+
+        .footer-text { color: #00ffff; font-size: 0.85rem; margin-top: 15px; font-weight: bold; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <canvas id="fireworksCanvas"></canvas>
+    
+    <div class="monitor">
+        <div class="photo-container"><img src="photo.jfif" id="main-photo" alt="Василий"></div>
+        
+        <div id="today-date">--.--.----</div>
+        
+        <div id="ny-section">
+            <div style="color: #00ffff; font-size: 0.9rem;">ДО НОВОГО ГОДА:</div>
+            <div id="ny-display" class="timer-display">00:00:00:00</div>
+        </div>
+
+        <div id="new-year-phrase"></div>
+
+        <div class="dembel-box">
+            <div style="font-size: 0.9rem; color: #fff;">ДО ДЕМБЕЛЯ (11 ИЮЛЯ 2026):</div>
+            <div id="dembel-display" class="timer-display dembel-timer">00:00:00:00</div>
+            <button id="music-btn" onclick="playMusic()">ВАСЯ ДЕМБЕЛЬ !!!</button>
+        </div>
+
+        <div id="wish-box">
+            <div id="status-header" style="color: #ff3333; font-weight: bold; font-size: 0.9rem; margin-bottom: 5px;">⚠️ ДОСТУП ЗАБЛОКИРОВАН ⚠️</div>
+            <div id="family-text" class="wish-content">********************************************************</div>
+            <div id="elf-info" class="elf-status">Ожидайте расшифровки: 01.01.2026</div>
+        </div>
+
+        <div class="footer-text">АНГАРСК -> ВАСИЛИЙ 👊</div>
+    </div>
+
+    <audio id="dembel-audio" loop preload="auto"><source src="music.mp3" type="audio/mpeg"></audio>
+
+    <script>
+        const TRIGGER_DATE = new Date('January 1, 2026 00:00:01').getTime(); 
+        const NY_FIREWORKS_END = new Date('January 3, 2026 00:00:00').getTime();
+        const SPRING_DATE = new Date('March 1, 2026 00:00:00').getTime();
+        const DEMBEL_DATE = new Date('July 11, 2026 00:00:01').getTime();
+        
+        const NY_WISH = "ДОРОГОЙ НАШ ВАСИЛИЙ! ВСЯ СЕМЬЯ ПОЗДРАВЛЯЕТ ТЕБЯ С НОВЫМ ГОДОМ! ЖЕЛАЕМ ТЕБЕ ЗДОРОВЬЯ, КРЕПКОГО ДУХА И СПОКОЙНОЙ СЛУЖБЫ. ЛЮБИМ, ЖДЕМ!";
+        const DEMBEL_WISH = "НУ ВОТ ТЫ И ДЕБИЛЬНУЛСЯ, ИЛИ ДЕМБЕЛЬНУЛСЯ, НУ ЧТО ТО ИЗ ЭТОГО";
+        
+        let fireworksActive = false;
+        let isDembelTime = false;
+        let isFirstPlay = true;
+
+        function playMusic() {
+            const audio = document.getElementById('dembel-audio');
+            const btn = document.getElementById('music-btn');
+            if (audio.paused) {
+                if (isFirstPlay) { audio.currentTime = 13; isFirstPlay = false; }
+                audio.play().catch(() => alert("Файл music.mp3 не найден!"));
+                btn.innerHTML = "🎶 ПАУЗА 🎶"; btn.style.animation = "none"; btn.style.background = "#222";
+            } else {
+                audio.pause();
+                btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶"; btn.style.animation = "fast-flash 0.2s infinite"; btn.style.background = "#ff0000";
+            }
+        }
+
+        function createFallingItem() {
+            if (document.hidden) return; // Не создавать элементы если вкладка не активна (экономия ресурсов)
+            const now = Date.now();
+            const item = document.createElement('div');
+            item.className = 'falling-item';
+            
+            if (now >= DEMBEL_DATE) {
+                item.innerHTML = ['⭐', '🎖️', '✨'][Math.floor(Math.random()*3)];
+                item.style.color = '#FFD700'; item.style.textShadow = '0 0 10px #FFA500';
+            } else if (now >= SPRING_DATE) {
+                item.innerHTML = '🍃'; item.style.color = '#32CD32';
+            } else {
+                item.innerHTML = '❄'; item.style.color = '#00ffff';
+            }
+            
+            item.style.left = Math.random() * 95 + 'vw';
+            item.style.fontSize = (Math.random() * 15 + 15) + 'px';
+            item.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            document.body.appendChild(item);
+            setTimeout(() => item.remove(), 7000);
+        }
+        setInterval(createFallingItem, 400);
+
+        function update() {
+            const now = new Date();
+            const cur = now.getTime();
+            document.getElementById('today-date').innerHTML = now.toLocaleDateString('ru-RU');
+
+            // НГ Логика
+            if (cur >= TRIGGER_DATE) {
+                document.getElementById('ny-section').style.display = "none";
+                document.getElementById('new-year-phrase').innerHTML = `<div class="neon-phrase">ГОД ПРОШЁЛ, ЧИСЛО СМЕНИЛОСЬ,<br>НИХУЯ НЕ ИЗМЕНИЛОСЬ</div>`;
+                if (!isDembelTime) {
+                    document.getElementById('status-header').innerHTML = "✅ РАСШИФРОВКА ЗАВЕРШЕНА ✅";
+                    document.getElementById('status-header').style.color = "#00ff00";
+                    document.getElementById('family-text').innerHTML = NY_WISH;
+                    document.getElementById('family-text').style.color = "#00ff00";
+                    document.getElementById('wish-box').style.borderColor = "#00ff00";
+                    document.getElementById('elf-info').innerHTML = "ОТПРАВЛЕНО ИЗ ШТАБА ДЕДА МОРОЗА 🎅";
+                }
+                if (cur < NY_FIREWORKS_END && !fireworksActive && !isDembelTime) { fireworksActive = true; startFireworks(); }
+                else if (cur >= NY_FIREWORKS_END && !isDembelTime) { fireworksActive = false; }
+            } else {
+                document.getElementById('ny-display').innerHTML = formatTime(TRIGGER_DATE - cur);
+            }
+
+            // Дембель Логика
+            if (cur >= DEMBEL_DATE) {
+                isDembelTime = true;
+                document.getElementById('dembel-display').innerHTML = "ДОМА!!! 🏁";
+                document.getElementById('music-btn').style.display = "block";
+                document.getElementById('family-text').innerHTML = DEMBEL_WISH;
+                document.getElementById('status-header').innerHTML = "🏁 КРАСАВА, ОТСЛУЖИЛ! 🏁";
+                document.getElementById('status-header').style.color = "#ffff00";
+                document.getElementById('wish-box').style.borderColor = "#FFD700";
+                const photo = document.getElementById('main-photo');
+                if (!photo.src.includes('dembel_photo.jpg')) photo.src = 'dembel_photo.jpg';
+                if (!fireworksActive) { fireworksActive = true; startFireworks(); }
+            } else {
+                document.getElementById('dembel-display').innerHTML = formatTime(DEMBEL_DATE - cur);
+            }
+        }
+
+        function formatTime(ms) {
+            const d = Math.floor(ms / 86400000);
+            const h = Math.floor((ms % 86400000) / 3600000);
+            const m = Math.floor((ms % 3600000) / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            return `${d}д:${h < 10 ? '0'+h : h}ч:${m < 10 ? '0'+m : m}м:${s < 10 ? '0'+s : s}с`;
+        }
+
+        // Салюты (оптимизированные)
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function startFireworks() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const animate = () => {
+                if (!fireworksActive && particles.length === 0) return;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.dx; p.y += p.dy; p.life--;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                    if (p.life <= 0) particles.splice(i, 1);
+                }
+                requestAnimationFrame(animate);
+            };
+            animate();
+            setInterval(() => { if(fireworksActive) createFirework(); }, isDembelTime ? 400 : 1000);
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height / 2);
+            const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            for (let i = 0; i < (isDembelTime ? 60 : 30); i++) {
+                particles.push({
+                    x, y, dx: (Math.random() - 0.5) * 8, dy: (Math.random() - 0.5) * 8,
+                    size: Math.random() * 2 + 1, color, life: 80
+                });
+            }
+        }
+
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        setInterval(update, 1000);
+        update();
+    </script>
+</body>
+</html>
