@@ -129,42 +129,41 @@
         let isDembelTime = false;
         let isFirstPlay = true;
 
-       let isPlaying = false; // Добавьте эту переменную в начало скрипта к остальным let
+       let isActionPending = false; // Предохранитель от частых кликов
 
 async function playMusic() {
     const audio = document.getElementById('dembel-audio');
     const btn = document.getElementById('music-btn');
 
-    // Если процесс запуска уже идет, игнорируем повторные клики
-    if (isPlaying && !audio.paused) {
-        audio.pause();
-        btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶";
-        btn.style.animation = "fast-flash 0.2s infinite";
-        btn.style.background = "#ff0000";
-        isPlaying = false;
-        return;
-    }
+    // Если мы уже обрабатываем клик — игнорируем новые нажатия
+    if (isActionPending) return;
+    
+    isActionPending = true;
 
     try {
-        isPlaying = true;
-        // Устанавливаем время только ОДИН раз за все время работы страницы
-        if (isFirstPlay) { 
-            audio.currentTime = 13; 
-            isFirstPlay = false; 
+        if (audio.paused) {
+            // Первый запуск с 13-й секунды
+            if (isFirstPlay) { 
+                audio.currentTime = 13; 
+                isFirstPlay = false; 
+            }
+            
+            await audio.play();
+            
+            btn.innerHTML = "🎶 ПАУЗА 🎶"; 
+            btn.style.animation = "none"; 
+            btn.style.background = "#222";
+        } else {
+            audio.pause();
+            btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶"; 
+            btn.style.animation = "fast-flash 0.2s infinite"; 
+            btn.style.background = "#ff0000";
         }
-        
-        // Сначала запускаем, потом меняем текст кнопки
-        await audio.play();
-        
-        btn.innerHTML = "🎶 ПАУЗА 🎶"; 
-        btn.style.animation = "none"; 
-        btn.style.background = "#222";
     } catch (err) {
-        isPlaying = false;
-        console.error("Ошибка:", err);
-        if (err.name !== 'AbortError') {
-            alert("Нажмите еще раз, музыка загружается...");
-        }
+        console.warn("Обработанная ошибка:", err.name);
+    } finally {
+        // Разблокируем кнопку через 200мс
+        setTimeout(() => { isActionPending = false; }, 200);
     }
 }
         function createFallingItem() {
@@ -281,4 +280,5 @@ async function playMusic() {
 </body>
 
 </html>
+
 
