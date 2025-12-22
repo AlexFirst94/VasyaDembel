@@ -129,18 +129,38 @@
         let isDembelTime = false;
         let isFirstPlay = true;
 
-        function playMusic() {
-            const audio = document.getElementById('dembel-audio');
-            const btn = document.getElementById('music-btn');
-            if (audio.paused) {
-                if (isFirstPlay) { audio.currentTime = 13; isFirstPlay = false; }
-                audio.play().catch(e => console.error("Ошибка воспроизведения:", e));
-                btn.innerHTML = "🎶 ПАУЗА 🎶"; btn.style.animation = "none"; btn.style.background = "#222";
-            } else {
-                audio.pause();
-                btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶"; btn.style.animation = "fast-flash 0.2s infinite"; btn.style.background = "#ff0000";
+        async function playMusic() {
+    const audio = document.getElementById('dembel-audio');
+    const btn = document.getElementById('music-btn');
+
+    if (audio.paused) {
+        try {
+            // Устанавливаем время только при первом включении
+            if (isFirstPlay) { 
+                audio.currentTime = 13; 
+                isFirstPlay = false; 
+            }
+            
+            // Ждем завершения попытки воспроизведения
+            await audio.play();
+            
+            btn.innerHTML = "🎶 ПАУЗА 🎶"; 
+            btn.style.animation = "none"; 
+            btn.style.background = "#222";
+        } catch (err) {
+            console.error("Ошибка воспроизведения:", err);
+            // Если прервано вызовом pause, просто игнорируем, если нет — выводим инфо
+            if (err.name !== 'AbortError') {
+                alert("Нажмите еще раз, чтобы музыка загрузилась");
             }
         }
+    } else {
+        audio.pause();
+        btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶"; 
+        btn.style.animation = "fast-flash 0.2s infinite"; 
+        btn.style.background = "#ff0000";
+    }
+}
 
         function createFallingItem() {
             if (document.hidden) return; // Не создавать элементы если вкладка не активна (экономия ресурсов)
@@ -254,4 +274,5 @@
         update();
     </script>
 </body>
+
 </html>
