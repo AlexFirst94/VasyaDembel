@@ -129,39 +129,44 @@
         let isDembelTime = false;
         let isFirstPlay = true;
 
-        async function playMusic() {
+       let isPlaying = false; // Добавьте эту переменную в начало скрипта к остальным let
+
+async function playMusic() {
     const audio = document.getElementById('dembel-audio');
     const btn = document.getElementById('music-btn');
 
-    if (audio.paused) {
-        try {
-            // Устанавливаем время только при первом включении
-            if (isFirstPlay) { 
-                audio.currentTime = 13; 
-                isFirstPlay = false; 
-            }
-            
-            // Ждем завершения попытки воспроизведения
-            await audio.play();
-            
-            btn.innerHTML = "🎶 ПАУЗА 🎶"; 
-            btn.style.animation = "none"; 
-            btn.style.background = "#222";
-        } catch (err) {
-            console.error("Ошибка воспроизведения:", err);
-            // Если прервано вызовом pause, просто игнорируем, если нет — выводим инфо
-            if (err.name !== 'AbortError') {
-                alert("Нажмите еще раз, чтобы музыка загрузилась");
-            }
-        }
-    } else {
+    // Если процесс запуска уже идет, игнорируем повторные клики
+    if (isPlaying && !audio.paused) {
         audio.pause();
-        btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶"; 
-        btn.style.animation = "fast-flash 0.2s infinite"; 
+        btn.innerHTML = "🎶 ИГРАТЬ ДАЛЕЕ 🎶";
+        btn.style.animation = "fast-flash 0.2s infinite";
         btn.style.background = "#ff0000";
+        isPlaying = false;
+        return;
+    }
+
+    try {
+        isPlaying = true;
+        // Устанавливаем время только ОДИН раз за все время работы страницы
+        if (isFirstPlay) { 
+            audio.currentTime = 13; 
+            isFirstPlay = false; 
+        }
+        
+        // Сначала запускаем, потом меняем текст кнопки
+        await audio.play();
+        
+        btn.innerHTML = "🎶 ПАУЗА 🎶"; 
+        btn.style.animation = "none"; 
+        btn.style.background = "#222";
+    } catch (err) {
+        isPlaying = false;
+        console.error("Ошибка:", err);
+        if (err.name !== 'AbortError') {
+            alert("Нажмите еще раз, музыка загружается...");
+        }
     }
 }
-
         function createFallingItem() {
             if (document.hidden) return; // Не создавать элементы если вкладка не активна (экономия ресурсов)
             const now = Date.now();
@@ -276,3 +281,4 @@
 </body>
 
 </html>
+
