@@ -98,7 +98,8 @@
     font-size: 0.95rem; 
     color: #ffaaaa; 
     font-weight: bold; 
-    /* Добавьте эти три строки ниже: */
+    
+    word-break: break-all;       /* Разрывает цепочку звезд в любом месте */
     word-wrap: break-word;       /* Переносит длинные слова */
     overflow-wrap: break-word;   /* Современный стандарт переноса */
     white-space: normal;         /* Позволяет тексту занимать несколько строк */
@@ -306,6 +307,7 @@ async function playMusic() {
 </body>
 
 </html>
+
 
 
 
