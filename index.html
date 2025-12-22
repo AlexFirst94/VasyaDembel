@@ -31,17 +31,29 @@
 
         /* НЕОНОВАЯ РАМКА ФОТО */
         .photo-container {
-            display: block; border: 3px solid #00ff00; border-radius: 10px;
-            margin: 0 auto 10px auto; 
-            box-shadow: 0 0 15px #00ff00;
-            animation: neon-pulse 2s infinite ease-in-out;
-            width: fit-content; max-width: 100%;
-            flex-shrink: 2; /* Фото сжимается первым, чтобы влез текст */
-        }
-        .photo-container img {
-            width: 100%; max-width: 250px; height: auto; 
-            max-height: 25dvh; display: block; object-fit: cover;
-        }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid #00ff00; /* Ваш зеленый неон */
+    border-radius: 10px;
+    margin: 0 auto 10px auto; 
+    box-shadow: 0 0 15px #00ff00; /* Ваше свечение */
+    animation: neon-pulse 2s infinite ease-in-out; /* Ваша пульсация */
+    overflow: hidden;
+    flex-shrink: 3; 
+    min-height: 0;
+}
+
+.photo-container img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    /* Ограничиваем высоту, чтобы влезло на iPhone */
+    max-height: 20dvh; 
+    display: block;
+    /* ПОЛНОЕ ОТОБРАЖЕНИЕ БЕЗ ОБРЕЗКИ */
+    object-fit: contain; 
+}
 
         @keyframes neon-pulse { 0%, 100% { box-shadow: 0 0 10px #00ff00; } 50% { box-shadow: 0 0 20px #00ff00; } }
 
@@ -74,12 +86,23 @@
         }
         @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 300%; } }
 
-        #wish-box { 
-            border: 2px double #ff3333; padding: 10px; border-radius: 8px;
-            background: rgba(255, 0, 0, 0.05); transition: 0.5s; 
-        }
-        .wish-content { font-size: 0.95rem; color: #ffaaaa; font-weight: bold; }
-
+       #wish-box { 
+    border: 2px double #ff3333; 
+    padding: 10px; 
+    border-radius: 8px;
+    background: rgba(255, 0, 0, 0.05); 
+    transition: 0.5s; 
+    overflow: hidden; /* Добавьте это */
+}
+        .wish-content { 
+    font-size: 0.95rem; 
+    color: #ffaaaa; 
+    font-weight: bold; 
+    /* Добавьте эти три строки ниже: */
+    word-wrap: break-word;       /* Переносит длинные слова */
+    overflow-wrap: break-word;   /* Современный стандарт переноса */
+    white-space: normal;         /* Позволяет тексту занимать несколько строк */
+}
         .falling-item { position: fixed; top: -50px; z-index: 1; pointer-events: none; animation: fall linear forwards; }
         @keyframes fall { to { transform: translateY(105dvh) rotate(360deg); } }
 
@@ -283,6 +306,7 @@ async function playMusic() {
 </body>
 
 </html>
+
 
 
 
